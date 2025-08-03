@@ -1,2 +1,12 @@
 # Club-Manager
-SAP System for club management. The system manages the member's data, club activities, and tariff structure. It allows users to add new members, assign activities and tariffs to them, and modify existing tariffs and activities. The system enables the creation of new tariffs and activities. Users can track the monthly and yearly income of the club.
+# SAP System for Club Management
+
+This system is designed for managing club activities, members, and tariff structures in an SAP environment. The system enables administrators to:
+
+- Manage member data.
+- Assign activities and tariffs to members.
+- Change existing tariffs and activities.
+- Create new activities and tariffs.
+- Track monthly and yearly income of the club.
+
+This solution enhances the efficiency of managing memberships, activities, and financial tracking, providing valuable insights for decision-making.
