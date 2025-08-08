@@ -1,0 +1,31 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_300
+*&---------------------------------------------------------------------*
+FORM get_selected_activity.
+  TRY.
+      CREATE OBJECT: go_avtivity.
+      DATA(ls_activity_infos) = go_avtivity->get_activity( gv_activity_id ).
+      gv_activity_updated_name = ls_activity_infos-name.
+      gv_activity_updated_descrip = ls_activity_infos-description.
+      gv_activity_updated_place = ls_activity_infos-place.
+      gv_activity_capacity = ls_activity_infos-capacity.
+      gv_activity_updated_max_capa = ls_activity_infos-max_capacity.
+      gv_activity_updated_status = COND #( WHEN ls_activity_infos-status = 'A' THEN 'Active'
+                                           ELSE 'Inactive').
+    CATCH zcx_cm_activity INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+
+ENDFORM.
+
+
+FORM clear_all_activities1.
+
+  CALL METHOD gr_alv_all_activities1->free.
+  FREE gr_alv_all_activities1.
+*  CALL METHOD gr_container_all_activities1->free.
+  FREE gr_container_all_activities1.
+
+  CLEAR: gt_all_activities1, gr_container_all_activities1, gr_alv_all_activities1.
+
+ENDFORM. 
