@@ -1,0 +1,30 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_420
+*&---------------------------------------------------------------------*
+
+FORM create_tarif.
+  gv_create_tarif_err = abap_false.
+  CREATE OBJECT go_tarif.
+  gs_new_tarif-name = gv_tarif_new_name.
+  gs_new_tarif-basis_price = gv_tarif_new_price.
+  gs_new_tarif-family = gv_tarif_new_family.
+  gs_new_tarif-age_discount = gv_tarif_new_age_discount.
+  gs_new_tarif-family_discount = gv_tarifs_new_family_discount.
+  TRY.
+      go_tarif->create_tarif( gs_new_tarif ).
+    CATCH zcx_cm_tarif INTO DATA(lr_ex).
+      gv_create_tarif_err = abap_true.
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+ENDFORM.
+FORM clear_created_tarif_fields.
+
+  CLEAR: gv_tarif_new_name,
+         gv_tarif_new_price,
+         gv_tarif_new_family,
+         gv_tarif_new_age_discount,
+         gv_tarifs_new_family_discount,
+         gs_new_tarif.
+
+  endform. 
