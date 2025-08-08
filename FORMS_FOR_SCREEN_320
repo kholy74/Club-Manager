@@ -1,0 +1,30 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_320
+*&---------------------------------------------------------------------*
+
+FORM create_activity.
+  gv_create_activity_err = abap_false.
+  CREATE OBJECT go_avtivity.
+  gs_new_activity-id = gv_activity_created_id.
+  gs_new_activity-name = gv_activity_created_name.
+  gs_new_activity-description = gv_activity_created_descrip.
+  gs_new_activity-place = gv_activity_created_place.
+  gs_new_activity-max_capacity = gv_activity_created_max_capa.
+  TRY.
+      go_avtivity->create_activity( is_new_activity = gs_new_activity ).
+    CATCH zcx_cm_activity INTO DATA(lr_ex).
+      gv_create_activity_err = abap_true.
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+ENDFORM.
+FORM clear_created_activity_fields.
+
+  CLEAR: gv_activity_created_id,
+         gv_activity_created_name,
+         gv_activity_created_descrip,
+         gv_activity_created_place,
+         gv_activity_created_max_capa,
+         gs_new_activity.
+
+  endform. 
