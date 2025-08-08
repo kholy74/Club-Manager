@@ -1,0 +1,145 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_240
+*&---------------------------------------------------------------------*
+FORM update_personal_infos.
+gv_update_profile_err = abap_false.
+  CREATE OBJECT go_member.
+  gs_member_data-first_name = gv_new_first_name.
+  gs_member_data-last_name = gv_new_last_name.
+  gs_member_data-birthday = gv_new_birthday.
+  gs_member_data-family_id = gv_new_family_id.
+  IF gv_new_account_status = 'A' OR  gv_new_account_status = 'I'.
+    gs_member_data-account_status = COND #( WHEN gv_new_account_status = 'A'
+                                              THEN 'A' ELSE 'I' ).
+  ENDIF.
+  gs_member_data-address = gv_new_address.
+  gs_member_data-city = gv_new_city.
+  gs_member_data-email = gv_new_email.
+  IF  gv_new_gender = 'M' OR  gv_new_gender = 'F' OR  gv_new_gender = 'D' .
+
+    gs_member_data-gender = COND #( WHEN gv_new_gender = 'M' THEN 'M'
+                                    WHEN gv_new_gender = 'F' THEN 'F'
+                                    ELSE 'D' ).
+  ENDIF.
+  gs_member_data-postal_code = gv_new_postal_code.
+  gs_member_data-telephone = gv_new_telephone.
+
+  TRY.
+      go_member->update_member( iv_member_id       = gv_member_id
+                                is_new_member_data = gs_member_data ).
+      IF   gv_new_last_name IS NOT INITIAL.
+        gv_last_name = gv_new_last_name.
+      ENDIF.
+      IF   gv_new_first_name IS NOT INITIAL.
+        gv_first_name = gv_new_first_name.
+      ENDIF.
+      IF   gv_new_birthday IS NOT INITIAL.
+        gv_birthday = gv_new_birthday.
+      ENDIF.
+      IF   gv_new_family_id IS NOT INITIAL.
+        gv_family_id = gv_new_family_id.
+      ENDIF.
+      IF   gv_new_account_status IS NOT INITIAL.
+        gv_account_status_txt = gv_new_account_status.
+      ENDIF.
+      IF   gv_new_address IS NOT INITIAL.
+        gv_address = gv_new_address.
+      ENDIF.
+      IF   gv_new_city IS NOT INITIAL.
+        gv_city = gv_new_city.
+      ENDIF.
+      IF   gv_new_email IS NOT INITIAL.
+        gv_email = gv_new_email.
+      ENDIF.
+      IF   gv_new_gender = 'Male' OR  gv_new_gender = 'Female' OR  gv_new_gender = 'Diverse' .
+        gv_gender = gv_new_gender.
+      ENDIF.
+      IF   gv_new_postal_code IS NOT INITIAL.
+        gv_postal_code = gv_new_postal_code.
+      ENDIF.
+      IF gv_new_telephone IS NOT INITIAL.
+        gv_telephone = gv_new_telephone.
+      ENDIF.
+
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      gv_update_profile_err = abap_true.
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+FORM clear_updated_member_fields.
+
+  CLEAR: gv_new_first_name,
+         gv_new_last_name,
+         gv_new_birthday,
+         gv_new_family_id,
+         gv_new_account_status,
+         gv_new_address,
+         gv_new_gender,
+         gv_new_postal_code,
+         gv_new_telephone,
+         gv_new_city,
+         gs_member_data.
+ENDFORM.
+
+FORM profile_status_dropdown.
+
+ DATA: lt_profile_status TYPE vrm_values,
+       ls_profile_status TYPE vrm_value.
+ CLEAR lt_profile_status.
+ ls_profile_status-key = 'A'.
+ ls_profile_status-text = 'Active'.
+ APPEND ls_profile_status TO lt_profile_status.
+ ls_profile_status-key = 'I'.
+ ls_profile_status-text = 'Inactive'.
+ APPEND ls_profile_status TO lt_profile_status.
+ CALL FUNCTION 'VRM_SET_VALUES'
+   EXPORTING
+     id     = 'GV_NEW_ACCOUNT_STATUS'
+     values = lt_profile_status.
+
+ENDFORM.
+
+FORM profile_gender_dropdown1.
+
+  DATA: lt_gender_status1 TYPE vrm_values,
+        ls_gender_status1 TYPE vrm_value.
+  CLEAR lt_gender_status1.
+
+  ls_gender_status1-key = 'M'.
+  ls_gender_status1-text = 'Male'.
+  APPEND ls_gender_status1 TO lt_gender_status1.
+
+  ls_gender_status1-key = 'F'.
+  ls_gender_status1-text = 'Female'.
+  APPEND ls_gender_status1 TO lt_gender_status1.
+
+  ls_gender_status1-key = 'D'.
+  ls_gender_status1-text = 'Diverse'.
+  APPEND ls_gender_status1 TO lt_gender_status1.
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id     = 'GV_NEW_GENDER'
+      values = lt_gender_status1.
+ENDFORM.
+
+
+FORM display_informations_for_edit.
+  gv_new_last_name = gv_last_name .
+  gv_new_first_name = gv_first_name .
+  gv_new_birthday =  gv_birthday.
+  gv_new_family_id = gv_family_id .
+  gv_new_account_status = COND #( WHEN gv_account_status_txt = 'Active' THEN 'A'
+                                   ELSE 'I' ).
+  gv_new_address =  gv_address .
+  gv_new_city =  gv_city.
+  gv_new_email =  gv_email .
+  gv_new_gender = COND #( WHEN gv_gender = 'Male' THEN 'M'
+                          WHEN gv_gender = 'Female' THEN 'F'
+                                   ELSE 'D' ). .
+  gv_new_postal_code =  gv_postal_code.
+  gv_new_telephone =  gv_telephone.
+ENDFORM.
