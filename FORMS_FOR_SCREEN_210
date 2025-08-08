@@ -1,0 +1,131 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_210
+*&---------------------------------------------------------------------*
+
+" Activities
+FORM display_member_activities1.
+
+  CREATE OBJECT go_member.
+  CREATE OBJECT gr_container_activities1
+    EXPORTING
+      container_name = 'ACTIVITIES_ALV1'.
+  CREATE OBJECT gr_alv_activities1
+    EXPORTING
+      i_parent = gr_container_activities1.
+  TRY.
+      gt_member_activities1 = go_member->get_member_activities( gv_member_id ).
+      SORT gt_member_activities1 BY id ASCENDING.
+      " Display the list in the container
+      CALL METHOD gr_alv_activities1->set_table_for_first_display
+        EXPORTING
+          i_structure_name = 'ZME_CM_ACTIVITY'
+        CHANGING
+          it_outtab        = gt_member_activities1.
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.
+
+
+FORM clear_member_activities1.
+
+  CALL METHOD gr_alv_activities1->free.
+  FREE gr_alv_activities1.
+  CALL METHOD gr_container_activities1->free.
+  FREE gr_container_activities1.
+  CLEAR: gr_alv_activities1, gr_container_activities1, gt_member_activities1.
+
+ENDFORM.
+
+FORM select_activity_id.
+
+  " Selecting activity ID
+  CALL METHOD gr_alv_activities1->get_selected_rows
+    IMPORTING
+      et_index_rows = DATA(lt_rows).
+  READ TABLE lt_rows INTO DATA(ls_row) INDEX 1.
+  IF sy-subrc = 0.
+    READ TABLE gt_member_activities1 INTO DATA(ls_data) INDEX ls_row-index.
+    IF sy-subrc = 0.
+      gv_activity_id = ls_data-id.
+    ENDIF.
+  ENDIF.
+ENDFORM.
+
+
+FORM unassign_activity.
+
+  CREATE OBJECT: go_member.
+  TRY.
+      DATA(lv_unassigned) = go_member->unassign_member_from_activity( iv_member_id   = gv_member_id
+                                                                      iv_activity_id = gv_activity_id ).
+
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+
+ENDFORM.
+
+FORM display_all_activities.
+  DATA(go_avtivity) = NEW zcl_me_cm_activity_handler( ).
+  CREATE OBJECT gr_container_all_activities
+    EXPORTING
+      container_name = 'ALL_ACTIVITIES_ALV'.
+  CREATE OBJECT gr_alv_all_activities
+    EXPORTING
+      i_parent = gr_container_all_activities.
+  TRY.
+      gt_all_activities = go_avtivity->get_all_activities( ).
+      SORT gt_all_activities BY id ASCENDING.
+      " Display the list in the container
+      CALL METHOD gr_alv_all_activities->set_table_for_first_display
+        EXPORTING
+          i_structure_name = 'ZME_CM_ACTIVITY'
+        CHANGING
+          it_outtab        = gt_all_activities.
+
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.
+
+FORM clear_all_activities.
+
+  CALL METHOD gr_alv_all_activities->free.
+  FREE gr_alv_all_activities.
+  CALL METHOD gr_container_all_activities->free.
+  FREE gr_container_all_activities.
+
+
+ENDFORM.
+
+FORM assign_activity .
+  CREATE OBJECT: go_member.
+
+  TRY.
+      DATA(lv_activity_added) = go_member->assign_member_to_activity( iv_member_id   = gv_member_id
+                                                                      iv_activity_id = gv_added_activity_id ).
+
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+FORM select_activity_id_in_add.
+
+  " Selecting activity ID
+  CALL METHOD gr_alv_all_activities->get_selected_rows
+    IMPORTING
+      et_index_rows = DATA(lt_rows).
+  READ TABLE lt_rows INTO DATA(ls_row) INDEX 1.
+  IF sy-subrc = 0.
+    READ TABLE gt_all_activities INTO DATA(ls_data) INDEX ls_row-index.
+    IF sy-subrc = 0.
+      gv_added_activity_id = ls_data-id.
+    ENDIF.
+  ENDIF.
+ENDFORM.
