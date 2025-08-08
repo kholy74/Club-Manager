@@ -1,0 +1,17 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_500
+*&---------------------------------------------------------------------*
+FORM get_monthly_income.
+  CREATE OBJECT go_income.
+  gv_monthly_income = go_income->get_monthly_income( gv_income_date ).
+  WRITE gv_monthly_income LEFT-JUSTIFIED TO gv_monthly.
+  gv_monthly =  gv_monthly && ' €'.
+ENDFORM.
+
+
+FORM get_yearly_income.
+  CREATE OBJECT go_income.
+  gv_yearly_income = go_income->get_yearly_income( ).
+  WRITE gv_yearly_income LEFT-JUSTIFIED TO gv_yearly.
+  gv_yearly =  gv_yearly && ' €'.
+endform. 
