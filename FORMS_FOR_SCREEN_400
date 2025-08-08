@@ -1,0 +1,29 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_400
+*&---------------------------------------------------------------------*
+
+FORM get_selected_tarif.
+  TRY.
+      CREATE OBJECT go_tarif.
+      gs_tarif = go_tarif->get_tarif( gv_tarif_id ).
+      gv_tarif_updated_name               = gs_tarif-name.
+      gv_tarifbasis_updated_price         = gs_tarif-basis_price.
+      gv_tarif_family              = gs_tarif-family.
+      gv_tarif_updated_age_discount       = gs_tarif-age_discount.
+      gv_tarif_updated_family_disc    = gs_tarif-family_discount.
+    CATCH zcx_cm_tarif INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+
+ENDFORM.
+
+
+FORM clear_all_tarif1.
+
+  CALL METHOD gr_alv_all_tarifs1->free.
+  FREE gr_alv_all_tarifs1.
+  FREE gr_container_all_tarifs1.
+
+  CLEAR: gt_tarifs1, gr_container_all_tarifs1, gr_alv_all_tarifs1.
+
+ENDFORM. 
