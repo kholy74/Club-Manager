@@ -1,0 +1,33 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_410
+*&---------------------------------------------------------------------*
+
+FORM edit_tarif.
+  gv_update_tarif_err = abap_false.
+  CREATE OBJECT go_tarif.
+  gs_updated_tarif-name = gv_tarif_updated_name.
+  gs_updated_tarif-basis_price = gv_tarifbasis_updated_price.
+  gs_updated_tarif-family = gv_tarif_updated_family.
+  gs_updated_tarif-age_discount = gv_tarif_updated_age_discount.
+  gs_updated_tarif-family_discount = gv_tarif_updated_family_disc.
+
+  TRY.
+      go_tarif->update_tarif( iv_tarif_id      = gv_tarif_id
+                              is_updated_tarif = gs_updated_tarif ).
+    CATCH zcx_cm_tarif INTO DATA(lr_ex).
+      gv_update_tarif_err = abap_true.
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+ENDFORM.
+
+FORM clear_edited_tarif_fields.
+
+  CLEAR: gv_tarif_updated_name,
+         gv_tarifbasis_updated_price,
+         gv_tarif_updated_family,
+         gv_tarif_updated_age_discount,
+         gv_tarif_updated_family_disc,
+         gs_updated_tarif.
+
+ENDFORM. 
