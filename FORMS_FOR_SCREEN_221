@@ -1,0 +1,78 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_221
+*&---------------------------------------------------------------------*
+
+
+
+FORM select_tarif_id.
+
+  " Selecting tarif ID
+  CALL METHOD gr_alv_all_tarifs->get_selected_rows
+    IMPORTING
+      et_index_rows = DATA(lt_rows).
+  READ TABLE lt_rows INTO DATA(ls_row) INDEX 1.
+  IF sy-subrc = 0.
+    READ TABLE gt_tarifs INTO DATA(ls_data) INDEX ls_row-index.
+    IF sy-subrc = 0.
+      gv_tarif_id = ls_data-id.
+    ENDIF.
+  ENDIF.
+ENDFORM.
+
+" Activities
+FORM display_member_activities2.
+
+  CREATE OBJECT go_member.
+  CREATE OBJECT gr_container_activities2
+    EXPORTING
+      container_name = 'ACTIVITIES_ALV2'.
+  CREATE OBJECT gr_alv_activities2
+    EXPORTING
+      i_parent = gr_container_activities2.
+  TRY.
+      gt_member_activities2 = go_member->get_member_activities( gv_member_id ).
+      " Display the list in the container
+      CALL METHOD gr_alv_activities->set_table_for_first_display
+        EXPORTING
+          i_structure_name = 'ZME_CM_ACTIVITY'
+        CHANGING
+          it_outtab        = gt_member_activities2.
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.
+
+
+FORM create_tarif_sta_date_dropdown.
+  DATA(lv_month) = 1.
+  DO 12 TIMES.
+    gv_month-key = lv_month.
+    gv_month-text = lv_month.
+    APPEND gv_month TO gt_tar_start_month.
+    lv_month += 1.
+  ENDDO.
+
+
+ENDFORM.
+
+
+FORM assign_new_tarif.
+
+  CREATE OBJECT go_member.
+  DATA ls_new_tarif TYPE zme_cm_mem_tarif.
+  ls_new_tarif-member_id = gv_member_id.
+  ls_new_tarif-tarif_id = gv_tarif_id.
+  ls_new_tarif-valid_from = gv_tarif_new_start.
+  ls_new_tarif-valid_to = gv_tarif_new_end.
+  TRY.
+      DATA(lv_tarif_updated) = go_member->update_member_tarif( iv_member_id     = gv_member_id
+                                                               is_updated_tarif = ls_new_tarif ).
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+
+ENDFORM.
+
+ 
