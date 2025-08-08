@@ -1,0 +1,70 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_230
+*&---------------------------------------------------------------------*
+
+FORM create_new_profile.
+  CREATE OBJECT go_member.
+  gv_create_profile_err = abap_false.
+  gs_new_member_profile-first_name = gv_created_first_name.
+  gs_new_member_profile-last_name = gv_created_last_name.
+  gs_new_member_profile-birthday = gv_created_birthday.
+  gs_new_member_profile-family_id = gv_created_family_id.
+  gs_new_member_profile-gender = gv_created_gender.
+  gs_new_member_profile-telephone = gv_created_telephone.
+  gs_new_member_profile-email = gv_created_email.
+  gs_new_member_profile-address = gv_created_address.
+  gs_new_member_profile-postal_code = gv_created_postal_code.
+  gs_new_member_profile-city = gv_created_city.
+
+  TRY.
+      go_member->set_member( iv_generate_family_id = gv_create_family_id
+                             iv_tarif_id           = gv_created_tarif_id
+                             is_member_data        = gs_new_member_profile ).
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      gv_create_profile_err = abap_true.
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+
+FORM clear_new_member_input.
+  CLEAR: gs_new_member_profile,
+         gv_created_first_name,
+         gv_created_last_name,
+         gv_created_birthday,
+         gv_created_family_id,
+         gv_created_gender,
+         gv_created_telephone,
+         gv_created_email,
+         gv_created_address,
+         gv_created_postal_code,
+         gv_created_city,
+         gv_create_family_id,
+         gv_created_tarif_id.
+ENDFORM.
+
+FORM profile_gender_dropdown.
+
+  DATA: lt_gender_status TYPE vrm_values,
+        ls_gender_status TYPE vrm_value.
+  CLEAR lt_gender_status.
+
+  ls_gender_status-key = 'M'.
+  ls_gender_status-text = 'Male'.
+  APPEND ls_gender_status TO lt_gender_status.
+
+  ls_gender_status-key = 'F'.
+  ls_gender_status-text = 'Female'.
+  APPEND ls_gender_status TO lt_gender_status.
+
+  ls_gender_status-key = 'D'.
+  ls_gender_status-text = 'Diverse'.
+  APPEND ls_gender_status TO lt_gender_status.
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id     = 'GV_CREATED_GENDER'
+      values = lt_gender_status.
+ENDFORM.
