@@ -1,0 +1,219 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_200
+*&---------------------------------------------------------------------*
+
+FORM select_member_id.
+  " Selecting member ID
+  CALL METHOD gr_alv->get_selected_rows
+    IMPORTING
+      et_index_rows = DATA(lt_rows).
+  READ TABLE lt_rows INTO DATA(ls_row) INDEX 1.
+  IF sy-subrc = 0.
+    READ TABLE gt_members INTO DATA(ls_data) INDEX ls_row-index.
+    IF sy-subrc = 0.
+      gv_member_id = ls_data-id.
+    ENDIF.
+  ENDIF.
+ENDFORM.
+
+
+FORM display_member_activities.
+
+
+
+  DATA: lt_fcat TYPE lvc_t_fcat,
+
+        ls_fcat TYPE lvc_s_fcat.
+
+  CREATE OBJECT go_member.
+
+  CREATE OBJECT gr_container_activities
+    EXPORTING
+      container_name = 'ACTIVITIES_ALV'.
+
+  CREATE OBJECT gr_alv_activities
+    EXPORTING
+      i_parent = gr_container_activities.
+
+  TRY.
+
+      gt_member_activities = go_member->get_member_activities( gv_member_id ).
+
+      SORT gt_member_activities BY id ASCENDING.
+
+      CLEAR ls_fcat.
+
+      ls_fcat-fieldname = 'ID'.
+
+      ls_fcat-coltext  = 'ID'.
+      ls_fcat-outputlen = 5.
+      APPEND ls_fcat TO lt_fcat.
+
+      CLEAR ls_fcat.
+
+      ls_fcat-fieldname = 'NAME'.
+
+      ls_fcat-coltext  = 'Name'.
+
+      APPEND ls_fcat TO lt_fcat.
+
+      CLEAR ls_fcat.
+
+      ls_fcat-fieldname = 'DESCRIPTION'.
+
+      ls_fcat-coltext  = 'Description'.
+
+      ls_fcat-outputlen = 24.
+
+      APPEND ls_fcat TO lt_fcat.
+
+      CLEAR ls_fcat.
+
+      ls_fcat-fieldname = 'PLACE'.
+
+      ls_fcat-coltext  = 'Place'.
+
+      ls_fcat-outputlen = 13.
+
+      APPEND ls_fcat TO lt_fcat.
+
+
+      CALL METHOD gr_alv_activities->set_table_for_first_display
+        CHANGING
+          it_fieldcatalog = lt_fcat
+          it_outtab       = gt_member_activities.
+
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+FORM clear_member_activities.
+
+  CALL METHOD gr_alv_activities->free.
+  FREE gr_alv_activities.
+  CALL METHOD gr_container_activities->free.
+  FREE gr_container_activities.
+  CLEAR: gr_alv_activities , gr_container_activities.
+
+ENDFORM.
+
+FORM get_all_member_data.
+  TRY.
+      CREATE OBJECT: go_member,
+                     go_tarif.
+      " Getting all member information using the method get_member_full_profil()
+      DATA(ls_member_infos) = go_member->get_member_full_profil( gv_member_id ).
+      PERFORM get_personal_informations.
+      gv_tarif_id      = ls_member_infos-member_tarif-id.
+      gv_tarif_name      = ls_member_infos-member_tarif-name.
+
+      " Connecting the local container with the layout container of the activities
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+
+  " Calculating the Tarif of the member
+  TRY.
+      gv_tarifbasis_price = go_tarif->calculate_tarif_price( iv_date      = sy-datum
+                                                             iv_member_id = gv_member_id ).
+      WRITE gv_tarifbasis_price LEFT-JUSTIFIED TO gv_tarif_price_txt.
+      gv_tarif_price_txt =  gv_tarif_price_txt && ' €'.
+
+    CATCH zcx_cm_tarif INTO DATA(lr_ex_tarif).
+      MESSAGE lr_ex_tarif TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+
+FORM clear_all_member_data.
+  CLEAR: gv_first_name,
+          gv_last_name,
+          gv_birthday,
+          gv_family_id,
+          gv_gender,
+          gv_creation_day,
+          gv_account_status_txt,
+          gv_created_by,
+          gv_telephone,
+          gv_email,
+          gv_address,
+          gv_postal_code,
+          gv_city,
+          gv_tarifbasis_price,
+          gv_tarif_price_txt.
+
+ENDFORM.
+
+FORM get_personal_informations.
+  TRY.
+      CREATE OBJECT: go_member.
+      " Getting all member information using the method get_member_full_profil()
+      DATA(ls_member_infos) = go_member->get_member_full_profil( gv_member_id ).
+
+      " Assiging the values to the dynpro fields
+      gv_first_name = ls_member_infos-member_data-first_name.
+      gv_last_name  = ls_member_infos-member_data-last_name.
+      gv_birthday   = ls_member_infos-member_data-birthday.
+      gv_family_id  = ls_member_infos-member_data-family_id.
+      gv_gender     = COND #( WHEN ls_member_infos-member_data-gender = 'M' THEN 'Male'
+                               WHEN ls_member_infos-member_data-gender = 'F' THEN 'Female'
+                                ELSE 'Diverse'   ).
+      gv_creation_day  = ls_member_infos-member_data-creation_day.
+      gv_account_status_txt  = COND #( WHEN ls_member_infos-member_data-account_status = 'A' THEN 'Active'
+                                        ELSE 'Inactive' ).
+      gv_created_by    = ls_member_infos-member_data-created_by.
+      gv_telephone      = ls_member_infos-member_data-telephone.
+      gv_email       = ls_member_infos-member_data-email.
+      gv_address        = ls_member_infos-member_data-address.
+      gv_postal_code     = ls_member_infos-member_data-postal_code.
+      gv_city           = ls_member_infos-member_data-city.
+
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
+ENDFORM.
+
+FORM get_member_all_tarifs.
+
+DATA lt_member_tarif_info TYPE STANDARD TABLE OF ty_member_tarif_info.
+  SELECT a~id,
+         a~name,
+         a~basis_price,
+         a~family,
+         a~age_discount,
+         a~family_discount,
+         b~valid_from,
+         b~valid_to
+        INTO TABLE @lt_member_tarif_info
+    FROM zme_cm_tarifs AS a
+    INNER JOIN zme_cm_mem_tarif AS b
+      ON a~id = b~tarif_id
+    WHERE b~member_id = @gv_member_id
+     ORDER BY a~id ASCENDING.
+
+
+  DATA: lr_container_activities TYPE REF TO cl_gui_custom_container,
+        lr_alv_activities       TYPE REF TO cl_gui_alv_grid.
+
+
+  CREATE OBJECT lr_container_activities
+    EXPORTING
+      container_name = 'MEMBER_ACTIVITIES_ALV'.
+  CREATE OBJECT lr_alv_activities
+    EXPORTING
+      i_parent = lr_container_activities.
+
+  " Display the list in the container
+  CALL METHOD lr_alv_activities->set_table_for_first_display
+    EXPORTING
+      i_structure_name = 'TY_MEMBER_TARIF_INFO'
+    CHANGING
+      it_outtab        = lt_member_tarif_info.
+
+ENDFORM.
