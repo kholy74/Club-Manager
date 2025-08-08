@@ -1,0 +1,66 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_220
+*&---------------------------------------------------------------------*
+
+
+FORM display_tarif.
+
+  CREATE OBJECT: go_member.
+  TRY.
+
+      DATA(ls_member_infos) = go_member->get_member_tarif( gv_member_id ).
+      SELECT SINGLE valid_from, valid_to FROM zme_cm_mem_tarif INTO @DATA(ls_tarif_dates)
+        WHERE member_id = @gv_member_id AND valid_from = ( SELECT MAX( valid_from ) FROM zme_cm_mem_tarif
+                                                             WHERE member_id = @gv_member_id ).
+      gv_tarif_id = ls_member_infos-id.
+      gv_tarif_name = ls_member_infos-name.
+      gv_tarif_basis_price = ls_member_infos-basis_price.
+      gv_tarif_family = ls_member_infos-family.
+      gv_tarif_age_discount = ls_member_infos-age_discount.
+      gv_tarifs_family_discount = ls_member_infos-family_discount.
+      gv_tarif_current_start = ls_tarif_dates-valid_from.
+      gv_tarif_current_end = ls_tarif_dates-valid_to.
+    CATCH zcx_cm_member INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+" Tarif
+FORM display_all_tarifs.
+
+  CREATE OBJECT go_tarif.
+  CREATE OBJECT gr_container_all_tarifs
+    EXPORTING
+      container_name = 'TARIFS_ALV'.
+  CREATE OBJECT gr_alv_all_tarifs
+    EXPORTING
+      i_parent = gr_container_all_tarifs.
+  TRY.
+      gt_tarifs = go_tarif->get_all_tarifs( ).
+      SORT gt_tarifs BY id ASCENDING.
+      " Display the list in the container
+      CALL METHOD gr_alv_all_tarifs->set_table_for_first_display
+        EXPORTING
+          i_structure_name = 'ZME_CM_TARIFS'
+        CHANGING
+          it_outtab        = gt_tarifs.
+    CATCH zcx_cm_tarif INTO DATA(lr_ex).
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+*      CALL FUNCTION 'F4_DATE'
+*        IMPORTING
+*          select_date = gv_tarif_start.
+      gv_tarif_new_start = gv_tarif_current_start.
+      gv_tarif_new_end = gv_tarif_current_end.
+  ENDTRY.
+ENDFORM.
+
+FORM clear_all_tarifs.
+  CALL METHOD gr_alv_all_tarifs->free.
+  FREE gr_alv_all_tarifs.
+  CALL METHOD gr_container_all_tarifs->free.
+  FREE gr_container_all_tarifs.
+
+ENDFORM.
