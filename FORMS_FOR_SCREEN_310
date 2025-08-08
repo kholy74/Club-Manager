@@ -1,0 +1,57 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_ME_FORMS_FOR_SCREEN_310
+*&---------------------------------------------------------------------*
+
+FORM edit_activity.
+gv_update_activity_err = abap_false.
+  CREATE OBJECT go_avtivity.
+
+  gs_updated_activity-id = gv_activity_updated_id.
+  gs_updated_activity-name = gv_activity_updated_name.
+  gs_updated_activity-description = gv_activity_updated_descrip.
+  gs_updated_activity-place = gv_activity_updated_place.
+  gs_updated_activity-max_capacity = gv_activity_updated_max_capa.
+  gs_updated_activity-status = gv_activity_updated_status.
+
+  TRY.
+      go_avtivity->update_activity( iv_activity_id      = gv_activity_id
+                                    is_updated_activity = gs_updated_activity ).
+    CATCH zcx_cm_activity INTO DATA(lr_ex).
+      gv_update_activity_err = abap_true.
+      MESSAGE lr_ex TYPE 'S' DISPLAY LIKE 'E'.
+
+  ENDTRY.
+
+ENDFORM.
+
+FORM clear_edited_activity_fields.
+
+  CLEAR: gv_activity_updated_id,
+         gv_activity_updated_name,
+         gv_activity_updated_descrip,
+         gv_activity_updated_place,
+         gv_activity_updated_max_capa,
+         gv_activity_updated_status,
+         gs_updated_activity.
+
+ENDFORM.
+
+FORM status_dropdown.
+
+  DATA: lt_status TYPE vrm_values,
+        ls_status TYPE vrm_value.
+  CLEAR lt_status.
+
+  ls_status-key = 'A'.
+  ls_status-text = 'Active'.
+  APPEND ls_status TO lt_status.
+
+  ls_status-key = 'I'.
+  ls_status-text = 'Inactive'.
+  APPEND ls_status TO lt_status.
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id     = 'GV_ACTIVITY_UPDATED_STATUS'
+      values = lt_status.
+ENDFORM. 
